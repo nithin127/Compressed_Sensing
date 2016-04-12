@@ -2,7 +2,7 @@ clear
 I = imread('barbara256.png');
 [mc,nc] = size(I);
 p = 8; %patch size
-stride = 4; %should divide p, m and n to leave 0 remainder
+stride = 1; %should divide p, m and n to leave 0 remainder
 I_patch = zeros(p*p,(mc/stride-p/stride +1)*(nc/stride-p/stride +1));
 % modify the value of f here, compression value
 f = 0.9;
@@ -78,12 +78,13 @@ end
 %boundary correction
 X_as = X;
 for i = 1:stride:p-stride
-    X(:,i:i+stride-1)= 2*X(:,i:i+stride-1);
-    X(i:i+stride-1,:)= 2*X(i:i+stride-1,:);
-    X(mc-i-stride+2:mc-i+1,:)= 2*X(mc-i-stride+2:mc-i+1,:);
-    X(:,mc-i-stride+2:mc-i+1)= 2*X(:,mc-i-stride+2:mc-i+1);
+    X(:,i:i+stride-1)= X(:,i:i+stride-1)+X_as(:,i:i+stride-1);
+    X(i:i+stride-1,:)= X(i:i+stride-1,:)+X_as(i:i+stride-1,:);
+    X(mc-i-stride+2:mc-i+1,:)= X(mc-i-stride+2:mc-i+1,:)+X_as(mc-i-stride+2:mc-i+1,:);
+    X(:,mc-i-stride+2:mc-i+1)= X(:,mc-i-stride+2:mc-i+1)+X_as(:,mc-i-stride+2:mc-i+1);
 end
-    
+
+X = X_as;
 minx = min(min(X));
 maxx = max(max(X));
 X = (X-minx)*255/(maxx-minx);
