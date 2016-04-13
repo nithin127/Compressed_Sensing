@@ -2,10 +2,10 @@ clear
 I = imread('barbara256.png');
 [mc,nc] = size(I);
 p = 8; %patch size
-stride = 1; %should divide p, m and n to leave 0 remainder
+stride = 4; %should divide p, m and n to leave 0 remainder
 I_patch = zeros(p*p,(mc/stride-p/stride +1)*(nc/stride-p/stride +1));
 % modify the value of f here, compression value
-f = 0.3;
+f = 0.9;
 n = p*p;
 m = ceil(f*n);
 count = 0;
@@ -20,6 +20,8 @@ end
 phi  = randn(p*p);
 phi = phi(1:m,:);
 y = phi*double(I_patch);
+%adding noise
+y = y + randn(size(y))*0.05*mean(abs(y(:)));
 U = kron(dctmtx(p)',dctmtx(p)');
 A = phi*U;
 
@@ -36,7 +38,10 @@ for i = 1:(mc/stride-p/stride +1)*(nc/stride-p/stride +1)
     T = [];
     inds = [];
     count = 0;
-    while ( norm(r) > 0.01)
+    % the while loop runs till the norm of r is 3*standard_deviation,
+    % therefore the probablity that the value of error lie in this region
+    % is 95%
+    while ( norm(r) > 3)
         count = count +1;       
         % to ensure that the no. of s does not exceed m, otherwise
         % pseudoinverse doesn't exist
@@ -56,7 +61,7 @@ for i = 1:(mc/stride-p/stride +1)*(nc/stride-p/stride +1)
         T = [T,T_i];
         s = pinv(A*T)*y_i;
         r = y_i-(A*T)*s;       
-        i
+        i+f
     end
     t = 64-size(s,1);
     s = [s;zeros(t,1)];
@@ -77,17 +82,22 @@ for i = 1:(mc/stride-p/stride +1)
 end
 %boundary correction
 X_as = X;
-for i = 1:stride:p-stride
-    X(:,i:i+stride-1)= X(:,i:i+stride-1)+X_as(:,i:i+stride-1);
-    X(i:i+stride-1,:)= X(i:i+stride-1,:)+X_as(i:i+stride-1,:);
-    X(mc-i-stride+2:mc-i+1,:)= X(mc-i-stride+2:mc-i+1,:)+X_as(mc-i-stride+2:mc-i+1,:);
-    X(:,mc-i-stride+2:mc-i+1)= X(:,mc-i-stride+2:mc-i+1)+X_as(:,mc-i-stride+2:mc-i+1);
+for i = 1:p-1
+    for j = 1:p-1
+        X(i,j)=p*p/(i*j)*X(i,j);
+        X(mc-i+1,j)=p*p/(i*j)*X(mc-i+1,j);
+        X(i,nc-j+1)=p*p/(i*j)*X(i,nc-j+1);
+        X(mc-i+1,nc-j+1)=p*p/(i*j)*X(mc-i+1,nc-j+1);
+    end
+    X(i,p:nc-p+1) = p/i*X(i,p:nc-p+1);
+    X(p:mc-p+1,i) = p/i*X(p:mc-p+1,i);
+    X(mc-i+1,p:nc-p+1) = p/i*X(mc-i+1,p:nc-p+1);
+    X(p:mc-p+1,nc-i+1) = p/i*X(p:mc-p+1,nc-i+1);
 end
 
-X = X_as;
+%X = X_as;
 minx = min(min(X));
 maxx = max(max(X));
 X = (X-minx)*255/(maxx-minx);
 imshow(uint8(X))
-save recon_0.3.mat
-%}
+save strcat('recon_',num2str(f),'_noise_',int2str(stride),'.mat');
