@@ -5,7 +5,7 @@ p = 8; %patch size
 stride = 1; %should divide p, m and n to leave 0 remainder
 I_patch = zeros(p*p,(mc/stride-p/stride +1)*(nc/stride-p/stride +1));
 % modify the value of f here, compression value
-f = 0.9;
+f = 0.3;
 n = p*p;
 m = ceil(f*n);
 count = 0;
@@ -89,5 +89,5 @@ minx = min(min(X));
 maxx = max(max(X));
 X = (X-minx)*255/(maxx-minx);
 imshow(uint8(X))
-
+save recon_0.3.mat
 %}
