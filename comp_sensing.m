@@ -115,6 +115,6 @@ hold on
 plot(mspe,'r-')
 figure
 for i = 1:10
-    subplot(2,5,i),imshow((uint8(X_all(i,:),[mc,nc])));
+    subplot(2,5,i),imshow((uint8(reshape(X_all(i,:),[mc,nc]))));
 end
-save stride_4.mat
+save stride_4_2.mat
